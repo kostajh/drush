@@ -9,12 +9,15 @@ use Ratchet\WebSocket\WsServer;
  */
 function api_server_launch() {
   $port = drush_get_option('port', 8080);
+  if (drush_get_option('request-handler')) {
+    $request_handler = drush_get_option('command-callback', 'default');
+  }
   require_once DRUSH_BASE_PATH . '/commands/api/includes/DrushWebSocket.php';
   drush_log(dt('Creating Drush Web Socket, listening at http://localhost:8080'), 'ok');
   $server = IoServer::factory(
     new HttpServer(
       new WsServer(
-        new DrushWebSocket()
+        new DrushWebSocket($request_handler)
       )
     ),
     $port

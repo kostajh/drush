@@ -11,7 +11,7 @@
 function api_drush_help($section) {
   switch ($section) {
     case 'drush:api':
-      return dt('Expose Drush as a web service. Allow clients to interact with Drush over HTTP(S) or WebSockets.');
+      return dt('Expose Drush as a web service. Allow clients to interact with Drush over HTTP or WebSockets.');
   }
 }
 
@@ -78,9 +78,9 @@ function drush_api_server() {
  */
 function drush_api_server_validate() {
   if (drush_get_option('server-type') == 'http') {
-    // Verify that user is on PHP 5.4+ for HTTP(S) option.
+    // Verify that user is on PHP 5.4+ for HTTP option.
     if (version_compare(phpversion(), '5.4') < 0) {
-      return drush_set_error('DRUSH_API_SERVER_REQUIREMENTS_ERROR', dt('You need PHP 5.4 to use the HTTP(S) option for the API Server command. You are running PHP !version', array('!version' => phpversion())));
+      return drush_set_error('DRUSH_API_SERVER_REQUIREMENTS_ERROR', dt('You need PHP 5.4 to use the HTTP option for the API Server command. You are running PHP !version', array('!version' => phpversion())));
     }
   }
   return TRUE;
@@ -121,13 +121,13 @@ function api_drush_engine_type_info() {
 function api_drush_engine_api_server() {
   return array(
     'http' => array(
-      'description' => 'Serve Drush over HTTP(S)',
+      'description' => 'Serve Drush over HTTP using PHP\'s built-in server. This should not be used on a public network',
       'options' => array(
         'headers' => 'A comma-separated list of additional headers to set.',
       ),
     ),
     'websocket' => array(
-      'description' => 'Serve Drush over a websocket.',
+      'description' => 'Serve Drush over a websocket. Use SSL if using over a public network.',
     ),
   );
 }
@@ -143,7 +143,7 @@ function api_drush_engine_api_request_handler() {
       'description' => 'Default API request handler. Responsible for parsing the incoming request and returning output.',
     ),
     'custom' => array(
-      'description' => 'Custom API request handler. If you choose this option, you must pass the `--command-callback` option with a valid Drush command to parse requests and return output.',
+      'description' => 'Use a custom API request handler. If you choose this option, you must pass the `--command-callback` option with a valid Drush command to parse requests and return output.',
       'options' => array(
         'command-callback' => array(
           'description' => 'A valid Drush command to use for parsing a request and returning data.',
@@ -157,35 +157,6 @@ function api_drush_engine_api_request_handler() {
 /**
  * @} End of "Engine types".
  */
-
-/**
- * Command callback for `drush api-web-socket`.
- */
-function drush_api_web_socket() {
-
-
-}
-
-/**
- * Command callback for `drush api-http`.
- */
-function drush_api_http() {
-  $php = drush_get_option('php');
-  if ($headers = array_filter(drush_get_option_list('headers'))) {
-    drush_cache_set('headers', $headers, 'drush-api');
-  }
-  if ($allowable_ips = array_filter(drush_get_option_list('allowable-ips'))) {
-    drush_cache_set('allowable-ips', $allowable_ips, 'drush-api');
-  }
-  if ($http_host = array_filter(drush_get_option_list('allowable-http-hosts'))) {
-    drush_cache_set('allowable-http-hosts', $http_host, 'drush-api');
-  }
-  $prepend = DRUSH_BASE_PATH . '/commands/api/api-prepend.php';
-  $host = drush_get_option('host', 'localhost');
-  $port = drush_get_option('port', '8888');
-  $cmd = sprintf('%s -S %s:%s %s', $php, $host, $port, $prepend);
-  return drush_shell_exec_interactive($cmd);
-}
 
 /**
  * Command callback for `drush api-request`.

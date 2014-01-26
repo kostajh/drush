@@ -18,11 +18,17 @@ class DrushWebSocket implements MessageComponentInterface {
   protected $command;
   protected $args;
   protected $options;
+  protected $request_handler;
+  protected $allowable_ips;
+  protected $allowable_hosts;
 
   /**
    * Constructor.
    */
-  public function __construct() {
+  public function __construct($request_handler, $allowable_ips = array(), $alllowable_hosts = array()) {
+    $this->request_handler = $request_handler;
+    $this->allowable_ips = $allowable_ips;
+    $this->allowable_hosts = $alllowable_hosts;
     $this->clients = new \SplObjectStorage();
   }
 
@@ -52,9 +58,12 @@ class DrushWebSocket implements MessageComponentInterface {
             '!ip' => $client->remoteAddress,
             '!request' => trim($request))),
           'ok');
-        $this->processRequest();
+        // TODO: Get values.
+        $ip = 'ip';
+        $host = 'host';
+        $response = api_request_handler_process_request($ip, $host, $request);
         drush_log(dt('Processed request in !seconds.'), 'ok');
-        $client->send($this->response);
+        $client->send($response);
       }
     }
   }
