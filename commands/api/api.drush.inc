@@ -5,18 +5,13 @@
  * Code for Drush Web Service API functionality.
  */
 
-use Ratchet\Server\IoServer;
-use Ratchet\Http\HttpServer;
-use Ratchet\WebSocket\WsServer;
-use DrushSocket\Chat;
-
 /**
  * Implements hook_drush_help().
  */
 function api_drush_help($section) {
   switch ($section) {
     case 'drush:api':
-      return dt('Expose Drush as a web service. Allow clients to issue Drush commands from the browser.');
+      return dt('Expose Drush as a web service. Allow clients to interact with Drush over HTTP(S) or WebSockets.');
   }
 }
 
@@ -65,14 +60,37 @@ function api_drush_command() {
  * Implements hook_drush_COMMAND_init().
  */
 function drush_api_server_init() {
-  // Clear our settings cache.
+  // Clear our "settings" cache.
   drush_cache_clear_all(NULL, 'drush-api');
 }
 
+/**
+ * Command callback for `drush api-server`.
+ *
+ * Launch a new Drush API server using a specified engine type.
+ */
 function drush_api_server() {
   drush_print('hello');
 }
 
+/**
+ * Implements hook_COMMAND_validate().
+ */
+function drush_api_server_validate() {
+  if (drush_get_option('server-type') == 'http') {
+    // Verify that user is on PHP 5.4+ for HTTP(S) option.
+    if (version_compare(phpversion(), '5.4') < 0) {
+      return drush_set_error('DRUSH_API_SERVER_REQUIREMENTS_ERROR', dt('You need PHP 5.4 to use the HTTP(S) option for the API Server command. You are running PHP !version', array('!version' => phpversion())));
+    }
+  }
+  return TRUE;
+}
+
+/**
+ * Implements hook_drush_engine_type_info().
+ *
+ * Inform Drush about our server type and request handler engines.
+ */
 function api_drush_engine_type_info() {
   return array(
     'api_server_type' => array(
@@ -89,6 +107,11 @@ function api_drush_engine_type_info() {
     ),
   );
 }
+
+/**
+ * @defgroup engines Engine types
+ * @{
+ */
 
 /**
  * Implements hook_drush_engine_ENGINE_TYPE().
@@ -130,6 +153,10 @@ function api_drush_engine_api_request_handler() {
     ),
   );
 }
+
+/**
+ * @} End of "Engine types".
+ */
 
 /**
  * Command callback for `drush api-web-socket`.
