@@ -42,24 +42,6 @@ function api_drush_command() {
       'allowable-http-hosts' => 'A comma-separated list of $_SERVER[\'HTTP_HOST\'] host names that will be accepted from the requester.',
     ),
   );
-  $items['api-http'] = array(
-    'description' => 'Expose Drush as a web service over HTTP.',
-    'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
-    'options' => array(
-      'host' => 'The hostname to use.',
-      'port' => 'The port to use.',
-      'headers' => 'A comma-separated list of headers to set.',
-      'allowable-ips' => 'A comma-separated list of IPs that may use the web service.',
-      'allowable-http-hosts' => 'A comma-separated list of $_SERVER[\'HTTP_HOST\'] host names that will be accepted from the requester.',
-    ),
-    'arguments' => array(),
-  );
-  $items['api-web-socket'] = array(
-    'description' => 'Expose Drush as a web socket.',
-    'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
-    'options' => array(),
-    'arguments' => array(),
-  );
   $items['api-request'] = array(
     'description' => 'Return data from Drush to the caller.',
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
@@ -95,24 +77,24 @@ function api_drush_engine_type_info() {
   return array(
     'api_server_type' => array(
       'description' => 'Determine how to provide access to Drush over the web.',
-      'option' => 'api-server-type',
+      'option' => 'server-type',
       'default' => 'websocket',
-      'options' => array(
-        'http' => 'Serve Drush over HTTP(S)',
-        'websocket' => 'Serve Drush over a websocket.',
-      ),
+      'add-options-to-command' => FALSE,
     ),
     'api_request_handler' => array(
       'description' => 'Determine how to process API requests to Drush.',
-      'option' => 'api-request-handler',
-      'default' => 'api-request-handler',
-      'options' => array(
-        'api-request-handler' => 'The default API request handler. Returns full output of drush_invoke_process() in JSON format.',
-      ),
+      'option' => 'request-handler',
+      'default' => 'default',
+      'add-options-to-command' => FALSE,
     ),
   );
 }
 
+/**
+ * Implements hook_drush_engine_ENGINE_TYPE().
+ *
+ * Provides information about the api-server-type engine.
+ */
 function api_drush_engine_api_server_type() {
   return array(
     'http' => array(
@@ -127,10 +109,24 @@ function api_drush_engine_api_server_type() {
   );
 }
 
+/**
+ * Implements hook_drush_engine_ENGINE_TYPE().
+ *
+ * Provide information about the api-request-handler engine type.
+ */
 function api_drush_engine_api_request_handler() {
   return array(
-    'api-request-handler' => array(
-      'description' => 'Default API request handler.',
+    'default' => array(
+      'description' => 'Default API request handler. Responsible for parsing the incoming request and returning output.',
+    ),
+    'custom' => array(
+      'description' => 'Custom API request handler. If you choose this option, you must pass the `--command-callback` option with a valid Drush command to parse requests and return output.',
+      'options' => array(
+        'command-callback' => array(
+          'description' => 'A valid Drush command to use for parsing a request and returning data.',
+          'required' => TRUE,
+        ),
+      ),
     ),
   );
 }
