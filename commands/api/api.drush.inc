@@ -23,7 +23,7 @@ function api_drush_command() {
     'description' => 'Expose Drush as a web service.',
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
     'engines' => array(
-      'api_server_type' => array(
+      'api_server' => array(
         'add-options-to-command' => FALSE,
       ),
       'api_request_handler' => array(
@@ -70,7 +70,7 @@ function drush_api_server_init() {
  * Launch a new Drush API server using a specified engine type.
  */
 function drush_api_server() {
-  drush_print('hello');
+  api_server_launch();
 }
 
 /**
@@ -93,7 +93,7 @@ function drush_api_server_validate() {
  */
 function api_drush_engine_type_info() {
   return array(
-    'api_server_type' => array(
+    'api_server' => array(
       'description' => 'Determine how to provide access to Drush over the web.',
       'option' => 'server-type',
       'default' => 'websocket',
@@ -118,7 +118,7 @@ function api_drush_engine_type_info() {
  *
  * Provides information about the api-server-type engine.
  */
-function api_drush_engine_api_server_type() {
+function api_drush_engine_api_server() {
   return array(
     'http' => array(
       'description' => 'Serve Drush over HTTP(S)',
@@ -163,18 +163,7 @@ function api_drush_engine_api_request_handler() {
  */
 function drush_api_web_socket() {
 
-  require_once DRUSH_BASE_PATH . '/commands/api/DrushWebSocket.php';
-  drush_log(dt('Creating Drush Web Socket, listening at http://localhost:8080'), 'ok');
-  $server = IoServer::factory(
-    new HttpServer(
-      new WsServer(
-        new DrushWebSocket()
-      )
-    ),
-    8080
-  );
 
-  $server->run();
 }
 
 /**
