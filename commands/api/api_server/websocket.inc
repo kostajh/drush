@@ -22,7 +22,7 @@ function api_server_launch() {
   $server = IoServer::factory(
     new HttpServer(
       new WsServer(
-        new DrushWebSocket($request_handler)
+        new DrushWebSocket()
       )
     ),
     $port

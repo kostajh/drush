@@ -26,16 +26,12 @@ function api_drush_command() {
       'api_server' => array(
         'add-options-to-command' => FALSE,
       ),
-      'api_request_handler' => array(
-        'add-options-to-command' => FALSE,
-      ),
     ),
     'options' => array(
-      'drush-path' => 'The path to the Drush executable, e.g. /usr/local/bin/drush, to use when processing a request.',
-      'host' => 'The hostname to use.',
-      'port' => 'The port to use.',
-      'allowable-ips' => 'A comma-separated list of IPs that may use the web service.',
-      'allowable-http-hosts' => 'A comma-separated list of $_SERVER[\'HTTP_HOST\'] host names that will be accepted from the requester.',
+      'host' => 'The hostname to use for the Drush API server.',
+      'port' => 'The port to use for the Drush API server.',
+      'allowable-ips' => 'A comma-separated list of IPs that may use the web service. By default all IPs are allowed.',
+      'allowable-http-hosts' => 'A comma-separated list of host names that will be accepted from the requester. By default all host names are allowed.',
     ),
   );
   $items['api-request'] = array(
@@ -43,31 +39,17 @@ function api_drush_command() {
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
     'options' => array(),
     'arguments' => array(
-      'drush' => 'The Drush executable to use.',
       'request' => 'The request to execute',
-      'http-host' => 'The HTTP Host of the requester',
-    ),
-    'engines' => array(
-      'api_request_handler' => array(
-        'add-options-to-command' => FALSE,
-      ),
+      'http-host' => 'The HTTP host of the requester',
+      'ip' => 'The IP address of the requester.',
     ),
     'outputformat' => array(
       'default' => 'json',
       'engines' => 'json',
       'pipe-format' => 'json',
-      'options' => array('json'),
     ),
   );
   return $items;
-}
-
-/**
- * Implements hook_drush_COMMAND_init().
- */
-function drush_api_server_init() {
-  // Clear our "settings" cache.
-  drush_cache_clear_all(NULL, 'drush-api');
 }
 
 /**
@@ -76,10 +58,6 @@ function drush_api_server_init() {
  * Launch a new Drush API server using a specified engine type.
  */
 function drush_api_server() {
-  // Store this setting in the cache so the `api-request` command
-  // can load it later.
-  $request_handler = drush_get_option('request-handler');
-  drush_cache_set('request_handler', $request_handler, 'drush-api');
   api_server_launch();
 }
 
@@ -109,12 +87,6 @@ function api_drush_engine_type_info() {
       'default' => 'websocket',
       'add-options-to-command' => FALSE,
     ),
-    'api_request_handler' => array(
-      'description' => 'Determine how to process API requests to Drush.',
-      'option' => 'request-handler',
-      'default' => 'default',
-      'add-options-to-command' => FALSE,
-    ),
   );
 }
 
@@ -133,33 +105,13 @@ function api_drush_engine_api_server() {
     'http' => array(
       'description' => 'Serve Drush over HTTP using PHP\'s built-in server. This should not be used on a public network',
       'options' => array(
-        'headers' => 'A comma-separated list of additional headers to set.',
+        'headers' => array(
+          'description' => 'A comma-separated list of additional headers to set, for example, "Access-Control-Allow-Origin: *".',
+        ),
       ),
     ),
     'websocket' => array(
       'description' => 'Serve Drush over a websocket. Use SSL if using over a public network.',
-    ),
-  );
-}
-
-/**
- * Implements hook_drush_engine_ENGINE_TYPE().
- *
- * Provide information about the api-request-handler engine type.
- */
-function api_drush_engine_api_request_handler() {
-  return array(
-    'default' => array(
-      'description' => 'Default API request handler. Responsible for parsing the incoming request and returning output.',
-    ),
-    'custom' => array(
-      'description' => 'Use a custom API request handler. If you choose this option, you must pass the `--command-callback` option with a valid Drush command to parse requests and return output.',
-      'options' => array(
-        'command-callback' => array(
-          'description' => 'A valid Drush command to use for parsing a request and returning data.',
-          'required' => TRUE,
-        ),
-      ),
     ),
   );
 }
@@ -176,7 +128,7 @@ function drush_api_request($request, $http_host = NULL, $ip_address = NULL) {
   if (!_api_request_allow($request, $http_host, $ip_address)) {
     return _api_access_denied();
   }
-  return api_request_handler_process_request($ip_address, $http_host, $request);
+  return api_process_request($ip_address, $http_host, $request);
 }
 
 /**
@@ -186,16 +138,14 @@ function _api_request_allow($request, $http_host, $ip_address) {
 
   // TODO: Allow for validating $request.
   // Check if allowable IPs are defined.
-  $allowable_ips = drush_get_option('allowable-ips', array());
-  if ($allowable_ips) {
+  if ($allowable_ips = array_filter(drush_get_option('allowable-ips'))) {
     if ($ip_address && !in_array($ip_address, $allowable_ips)) {
       return FALSE;
     }
   }
 
   // Check if HTTP_HOST matches.
-  $allowable_http_hosts = drush_get_option('allowable-http-hosts', array());
-  if ($allowable_http_hosts) {
+  if ($allowable_http_hosts = array_filter(drush_get_option_list('allowable-http-hosts'))) {
     if (!in_array($http_host, $allowable_http_hosts)) {
       return FALSE;
     }
@@ -218,6 +168,20 @@ function _api_parse_request($request) {
     'args' => $args,
     'options' => $options,
   );
+}
+
+/**
+ * Process an incoming request via drush_invoke_process() and return results.
+ */
+function api_process_request($ip_address, $host, $request) {
+  $data = _api_parse_request($request);
+  if (!$data) {
+    return _api_error();
+  }
+  if ($result = drush_command_invoke_all_ref('drush_api_process_request_alter', $ip_address, $host, $request)) {
+    return $result;
+  }
+  return _api_run_command($data['alias'], $data['command'], $data['args'], $data['options']);
 }
 
 /**

@@ -36,8 +36,9 @@ function _drush_api_set_output($response) {
 function _drush_api_set_headers() {
   header('Content-Type: application/json');
   // Set custom headers.
-  if (isset($_ENV['DRUSH_API_HEADERS']) && count($_ENV['DRUSH_API_HEADERS'])) {
-    foreach ($_ENV['DRUSH_API_HEADERS'] as $header) {
+  if (isset($_ENV['DRUSH_API_HEADERS'])) {
+    $headers = unserialize($_ENV['DRUSH_API_HEADERS']);
+    foreach ($headers as $header) {
       header($header);
     }
   }
@@ -54,15 +55,11 @@ function _drush_api_request() {
     $request = 'core-status';
   }
   $drush_executable = $_ENV['DRUSH'];
-  if ($_ENV['DRUSH_API_REQUEST_HANDLER_CALLBACK']) {
-
-  }
-  $command = sprintf('%s api-request %s %s %s %s',
+  $command = sprintf('%s api-request %s %s %s',
     escapeshellarg($drush_executable),
     escapeshellarg($request),
     escapeshellarg($_SERVER['HTTP_HOST']),
-    escapeshellarg($_SERVER['REMOTE_ADDR']),
-    escapeshellarg($request_handler_callback)
+    escapeshellarg($_SERVER['REMOTE_ADDR'])
   );
   // Log the command.
   error_log('Drush API: ' . $command);
