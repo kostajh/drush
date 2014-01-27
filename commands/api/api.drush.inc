@@ -125,7 +125,7 @@ function api_drush_engine_api_server() {
  */
 function drush_api_request($request, $http_host = NULL, $ip_address = NULL) {
   // Check if access is allowed.
-  if (!_api_request_allow($request, $http_host, $ip_address)) {
+  if (!_api_request_allow($http_host, $ip_address)) {
     return _api_access_denied();
   }
   return api_process_request($ip_address, $http_host, $request);
@@ -134,9 +134,8 @@ function drush_api_request($request, $http_host = NULL, $ip_address = NULL) {
 /**
  * Check if the request is allowed.
  */
-function _api_request_allow($request, $http_host, $ip_address) {
+function _api_request_allow($http_host, $ip_address) {
 
-  // TODO: Allow for validating $request.
   // Check if allowable IPs are defined.
   if ($allowable_ips = array_filter(drush_get_option('allowable-ips'))) {
     if ($ip_address && !in_array($ip_address, $allowable_ips)) {
@@ -162,14 +161,40 @@ function _api_parse_request($request) {
   $alias = array_shift($args);
   $command = array_shift($args);
   $options = explode('&', $parsed['query']);
-  return array(
+  $parsed_request = array(
     'alias' => $alias,
     'command' => $command,
     'args' => $args,
     'options' => $options,
   );
+  return _api_is_valid_request($parsed_request) ? $parsed_request : FALSE;
 }
 
+/**
+ * Validate the incoming request.
+ */
+function _api_is_valid_request($request) {
+  // Verify alias.
+  if (!drush_sitealias_get_record($request['alias']) && $request['alias'] !== '@none') {
+    return FALSE;
+  }
+  $context = drush_get_context();
+  if (!in_array($request['command'], array_keys($context['DRUSH_COMMANDS']))) {
+    return FALSE;
+  }
+  // Don't let users get clever.
+  if (in_array($request['command'], array('api-server', 'api-request'))) {
+    return FALSE;
+  }
+  // Validate number of args does not exceed what command will accept.
+  if (count($request['args']) > count($context['DRUSH_COMMANDS'][$request['command']]['arguments'])) {
+    return FALSE;
+  }
+  // Validate options.
+
+
+  return TRUE;
+}
 /**
  * Process an incoming request via drush_invoke_process() and return results.
  */
