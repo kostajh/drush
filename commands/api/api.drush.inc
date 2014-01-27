@@ -31,6 +31,7 @@ function api_drush_command() {
       ),
     ),
     'options' => array(
+      'drush-path' => 'The path to the Drush executable, e.g. /usr/local/bin/drush, to use when processing a request.',
       'host' => 'The hostname to use.',
       'port' => 'The port to use.',
       'allowable-ips' => 'A comma-separated list of IPs that may use the web service.',
@@ -45,6 +46,11 @@ function api_drush_command() {
       'drush' => 'The Drush executable to use.',
       'request' => 'The request to execute',
       'http-host' => 'The HTTP Host of the requester',
+    ),
+    'engines' => array(
+      'api_request_handler' => array(
+        'add-options-to-command' => FALSE,
+      ),
     ),
     'outputformat' => array(
       'default' => 'json',
@@ -70,6 +76,10 @@ function drush_api_server_init() {
  * Launch a new Drush API server using a specified engine type.
  */
 function drush_api_server() {
+  // Store this setting in the cache so the `api-request` command
+  // can load it later.
+  $request_handler = drush_get_option('request-handler');
+  drush_cache_set('request_handler', $request_handler, 'drush-api');
   api_server_launch();
 }
 
@@ -161,62 +171,79 @@ function api_drush_engine_api_request_handler() {
 /**
  * Command callback for `drush api-request`.
  */
-function drush_api_request($drush, $request, $http_host = NULL) {
-
-  $json_header = array('Content-Type: application/json');
-  if (!_drush_api_request_allow($request, $http_host)) {
-    $response['response_code'] = '403';
-    $response['headers'] = $json_header;
-    $response['output'] = json_encode('Access denied.');
-    return $response;
+function drush_api_request($request, $http_host = NULL, $ip_address = NULL) {
+  // Check if access is allowed.
+  if (!_api_request_allow($request, $http_host, $ip_address)) {
+    return _api_access_denied();
   }
-  $cmd = sprintf('%s %s --backend', $drush, $request);
-  $out = shell_exec($cmd);
-  $response = drush_backend_parse_output($out);
-  $response_code = 200;
-  // Check if we have output in JSON format.
-  if (!json_decode($response['output']) && $response['error_status'] !== 1) {
-    // If object is set and we did not get JSON in the output, return object.
-    if (count($response['object'])) {
-      $response['output'] = json_encode($response['object']);
-    }
-    else {
-      // Assume we ran a command that doesn't provide output.
-      $response['output'] = json_encode(sprintf('Successfully ran the command: "%s %s"', $drush, $request));
-    }
-  }
-  // If it's an error, encode the response.
-  if ($response['error_status'] == 1) {
-    $response['output'] = json_encode($response['error_log']);
-    $response_code = 500;
-  }
-  // Set headers. We always return JSON.
-  if ($headers = drush_cache_get('headers', 'drush-api')) {
-    $response['headers'] = array_merge($headers->data, $json_header);
-  }
-  else {
-    $response['headers'] = $json_header;
-  }
-  // Set the response code.
-  $response['response_code'] = $response_code;
-  return $response;
+  return api_request_handler_process_request($ip_address, $http_host, $request);
 }
 
 /**
  * Check if the request is allowed.
  */
-function _drush_api_request_allow($request, $http_host) {
+function _api_request_allow($request, $http_host, $ip_address) {
+
+  // TODO: Allow for validating $request.
   // Check if allowable IPs are defined.
-  if ($allowable_ips = drush_cache_get('allowable-ips', 'drush-api')) {
-    if (isset($_SERVER['REMOTE_ADDR']) && !in_array($_SERVER['REMOTE_ADDR'], $allowable_ips->data)) {
+  $allowable_ips = drush_get_option('allowable-ips', array());
+  if ($allowable_ips) {
+    if ($ip_address && !in_array($ip_address, $allowable_ips)) {
       return FALSE;
     }
   }
+
   // Check if HTTP_HOST matches.
-  if ($allowable_http_hosts = drush_cache_get('allowable-http-hosts', 'drush-api')) {
-    if (!in_array($http_host, $allowable_http_hosts->data)) {
+  $allowable_http_hosts = drush_get_option('allowable-http-hosts', array());
+  if ($allowable_http_hosts) {
+    if (!in_array($http_host, $allowable_http_hosts)) {
       return FALSE;
     }
   }
   return TRUE;
+}
+
+/**
+ * Parse an incoming request into alias, command, args and options.
+ */
+function _api_parse_request($request) {
+  $parsed = parse_url($request);
+  $args = explode('/', $parsed['path']);
+  $alias = array_shift($args);
+  $command = array_shift($args);
+  $options = explode('&', $parsed['query']);
+  return array(
+    'alias' => $alias,
+    'command' => $command,
+    'args' => $args,
+    'options' => $options,
+  );
+}
+
+/**
+ * Run a command via drush_invoke_process() and return the output.
+ */
+function _api_run_command($alias, $command, $args = array(), $options = array()) {
+  return drush_invoke_process($alias, $command, $args, $options, FALSE);
+}
+
+/**
+ * An access denied array to return to drush_api_request().
+ */
+function _api_access_denied() {
+  return array(
+    'response_code' => 403,
+    'error_status' => 1,
+    'error_log' => dt('Access denied.'),
+  );
+}
+
+/**
+ * An error array to return to drush_api_request().
+ */
+function _api_error() {
+  return array(
+    'error_status' => 1,
+    'error_log' => dt('Invalid request.'),
+  );
 }

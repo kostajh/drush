@@ -6,25 +6,38 @@
  */
 
 $response = _drush_api_request();
-_drush_api_set_headers($response);
 return _drush_api_set_output($response);
 
 /**
  * Set the output and response code.
  */
 function _drush_api_set_output($response) {
+  // Set headers.
+  _drush_api_set_headers();
   // Print output.
-  echo $response['output'];
+  echo json_encode($response);
   // Set response code.
-  http_response_code($response['response_code']);
+  if (isset($response['response_code'])) {
+    http_response_code($response['response_code']);
+  }
+  else {
+    if ($response['error_status'] == 1) {
+      http_response_code(500);
+    }
+    else {
+      http_response_code(200);
+    }
+  }
   return TRUE;
 }
 /**
  * Set the headers.
  */
-function _drush_api_set_headers($response) {
-  if (isset($response['headers']) && count($response['headers'])) {
-    foreach ($response['headers'] as $header) {
+function _drush_api_set_headers() {
+  header('Content-Type: application/json');
+  // Set custom headers.
+  if (isset($_ENV['DRUSH_API_HEADERS']) && count($_ENV['DRUSH_API_HEADERS'])) {
+    foreach ($_ENV['DRUSH_API_HEADERS'] as $header) {
       header($header);
     }
   }
@@ -40,11 +53,19 @@ function _drush_api_request() {
     // Set a default command.
     $request = 'core-status';
   }
-  $drush_executable = trim(shell_exec('which drush'));
-  // We pass HTTP_HOST here because we don't have access to it in `api-request`.
-  $command = sprintf('%s api-request %s %s %s', $drush_executable, escapeshellarg($drush_executable), escapeshellarg($request), escapeshellarg($_SERVER['HTTP_HOST']));
+  $drush_executable = $_ENV['DRUSH'];
+  if ($_ENV['DRUSH_API_REQUEST_HANDLER_CALLBACK']) {
+
+  }
+  $command = sprintf('%s api-request %s %s %s %s',
+    escapeshellarg($drush_executable),
+    escapeshellarg($request),
+    escapeshellarg($_SERVER['HTTP_HOST']),
+    escapeshellarg($_SERVER['REMOTE_ADDR']),
+    escapeshellarg($request_handler_callback)
+  );
   // Log the command.
-  error_log('Drush Web Service API: ' . $command);
+  error_log('Drush API: ' . $command);
   $response = json_decode(shell_exec($command), TRUE);
   return $response;
 }

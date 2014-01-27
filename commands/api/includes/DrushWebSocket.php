@@ -3,10 +3,8 @@
 use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
 
-
 /**
  * Class DrushWebSocket.
- * @property string response
  */
 class DrushWebSocket implements MessageComponentInterface {
 
@@ -18,17 +16,17 @@ class DrushWebSocket implements MessageComponentInterface {
   protected $command;
   protected $args;
   protected $options;
-  protected $request_handler;
-  protected $allowable_ips;
-  protected $allowable_hosts;
+  protected $requestHandler;
+  protected $allowableIps;
+  protected $allowableHosts;
 
   /**
    * Constructor.
    */
   public function __construct($request_handler, $allowable_ips = array(), $alllowable_hosts = array()) {
-    $this->request_handler = $request_handler;
-    $this->allowable_ips = $allowable_ips;
-    $this->allowable_hosts = $alllowable_hosts;
+    $this->requestHandler = $request_handler;
+    $this->allowableIps = $allowable_ips;
+    $this->allowableHosts = $alllowable_hosts;
     $this->clients = new \SplObjectStorage();
   }
 
@@ -48,8 +46,8 @@ class DrushWebSocket implements MessageComponentInterface {
   public function onMessage(ConnectionInterface $from, $request) {
 
     foreach ($this->clients as $client) {
+      // Send the message to the requester, not all clients.
       if ($from == $client) {
-        $this->request = $request;
         $this->from = $from;
         $this->response = '';
         drush_log(dt('Request from #!resource at IP !ip: !request',
@@ -59,60 +57,14 @@ class DrushWebSocket implements MessageComponentInterface {
             '!request' => trim($request))),
           'ok');
         // TODO: Get values.
-        $ip = 'ip';
+        $ip = $client->remoteAddress;
         $host = 'host';
-        $response = api_request_handler_process_request($ip, $host, $request);
-        drush_log(dt('Processed request in !seconds.'), 'ok');
-        $client->send($response);
+        drush_set_option('request-handler', $this->requestHandler);
+        $response = api_request_handler_process_request($ip, $host, $this->request);
+        drush_log(dt('Processed request.'), 'success');
+        $client->send(json_encode($response));
       }
     }
-  }
-
-  /**
-   * Process the incoming request.
-   */
-  protected function processRequest() {
-    // Check if $from is allowed.
-    if (!$this->validateFrom()) {
-      return FALSE;
-    }
-    elseif (!$this->validateRequest()) {
-      return FALSE;
-    }
-    else {
-      $this->runCommand();
-    }
-  }
-
-  /**
-   * Check that the requester is coming from an allowed host and/or IP.
-   */
-  protected function validateFrom() {
-    return TRUE;
-  }
-
-  /**
-   * Validate the request.
-   *
-   * Check if the alias is valid; if the command exists; and if the options are
-   * valid.
-   */
-  protected function validateRequest() {
-    $parsed = parse_url($this->request);
-    $args = explode('/', $parsed['path']);
-    $this->alias = array_shift($args);
-    $this->command = array_shift($args);
-    $this->args = $args;
-    $this->options = explode('&', $parsed['query']);
-    return TRUE;
-  }
-
-  /**
-   * Run the requested command through drush_invoke_process().
-   */
-  protected function runCommand() {
-    $ret = drush_invoke_process($this->alias, $this->command, $this->args, $this->options, FALSE);
-    $this->response = json_encode($ret);
   }
 
   /**

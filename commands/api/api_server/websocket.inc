@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Code for launching a Drush server using a websocket.
+ */
+
 use Ratchet\Server\IoServer;
 use Ratchet\Http\HttpServer;
 use Ratchet\WebSocket\WsServer;
