@@ -268,7 +268,7 @@ Post-install
    data.
 
 Additional configurations for MAMP
------------------------------------
+----------------------------------
 
 | Users of MAMP will need to manually specify in their PATH which
 version of php
