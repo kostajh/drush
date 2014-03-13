@@ -78,7 +78,7 @@ specify that command on the shebang line.
 Drush scripts can access their arguments via the drush\_shift()
 function:
 
-::
+.. code-block:: php
 
             while ($arg = drush_shift()) {
               drush_print($arg);
