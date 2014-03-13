@@ -15,7 +15,7 @@ the rest of the line as bash commands. Aliases that do not start with a
 Example:
 ~~~~~~~~
 
-::
+.. code-block:: php
 
         $options['shell-aliases']['pull'] = '!git pull';
         $options['shell-aliases']['noncore'] = 'pm-list --no-core';
