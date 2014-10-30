@@ -6,7 +6,7 @@ Drush is built by people like you! Please [join us](https://github.com/drush-ops
 * The latest changes are in the `master` branch.
 * Make a new branch for every feature you're working on.
 * Try to make clean commits that are easily readable (including descriptive commit messages!)
-* Test before you push. Get familiar with Unish, our test suite. See the test-specific [README.md](tests/README.md)
+* Test before you push. Get familiar with Unish, our test suite. See the test-specific README 
 * Make small pull requests that are easy to review but make sure they do add value by themselves.
 * We maintain branches named 6.x, 5.x, etc. These are release branches. From these branches, we make new tags for patch and minor versions.
 
