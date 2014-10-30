@@ -1,6 +1,9 @@
+# Contributing
+
 Drush is built by people like you! Please [join us](https://github.com/drush-ops/drush).
 
 ## Git and Pull requests
+
 * Contributions are submitted, reviewed, and accepted using Github pull requests. [Read this article](https://help.github.com/articles/using-pull-requests) for some details. We use the _Fork and Pull_ model, as described there.
 * Optionally, to help keep track of [your assigned issues](https://github.com/dashboard/issues/assigned), simply ask to be added to the contributor team. A maintainer can now assign any issue to you at your request.
 * The latest changes are in the `master` branch.
