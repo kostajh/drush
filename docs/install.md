@@ -6,16 +6,57 @@ This section provides detailed information on how to correctly install Drush on 
 
 Each version of Drush supports multiple Drupal versions:
 
-- Drush 6 is the recommended version
-- Drupal 8 requires Drush 7
+- **Drush 6** is the recommended version for Drupal 7 and earlier
+- **Drupal 8** requires Drush 7
 
-| Drush Version | Branch                                           | PHP         | Compatible Drupal versions | Code Status                                                         |
-| ------------- | ------------------------------------------------ | ----------- | -------------------------- | ------------------------------------------------------------------- |
-| Drush 7       | [master](https://travis-ci.org/drush-ops/drush)  | 5.3.0+      | D6, D7, D8                 | <img src="https://travis-ci.org/drush-ops/drush.svg?branch=master"> |
-| Drush 6       | [6.x](https://travis-ci.org/drush-ops/drush)     | 5.3.0+      | D6, D7                     | <img src="https://travis-ci.org/drush-ops/drush.svg?branch=6.x">    |
-| Drush 5       | [5.x](https://travis-ci.org/drush-ops/drush)     | 5.2.0+      | D6, D7                     | Unsupported                                                         |
-| Drush 4       | 4.x                                              | 5.2.0+      | D5, D6, D7                 | Unsupported                                                         | 
-| Drush 3       | 3.x                                              | 5.2.0+      | D5, D6                     | Unsupported                                                         |
+<table border=1 class="docutils">
+<thead valign="bottom">
+<tr class="row-odd">
+<th class="head">Drush Version</th>
+<th class="head">Branch</th>
+<th class="head">PHP</th>
+<th class="head">Compatible Drupal versions</th>
+<th class="head">Code Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Drush 7</td>
+<td><a href="https://travis-ci.org/drush-ops/drush">master</a></td>
+<td>5.3.0+</td>
+<td>D6, D7, D8</td>
+<td><img src="https://travis-ci.org/drush-ops/drush.svg?branch=master"></td>
+</tr>
+<tr>
+<td>Drush 6</td>
+<td><a href="https://travis-ci.org/drush-ops/drush">6.x</a></td>
+<td>5.3.0+</td>
+<td>D6, D7</td>
+<td><img src="https://travis-ci.org/drush-ops/drush.svg?branch=6.x"></td>
+</tr>
+<tr>
+<td>Drush 5</td>
+<td><a href="https://travis-ci.org/drush-ops/drush">5.x</a></td>
+<td>5.2.0+</td>
+<td>D6, D7</td>
+<td>Unsupported</td>
+</tr>
+<tr>
+<td>Drush 4</td>
+<td>4.x</td>
+<td>5.2.0+</td>
+<td>D5, D6, D7</td>
+<td>Unsupported</td>
+</tr>
+<tr>
+<td>Drush 3</td>
+<td>3.x</td>
+<td>5.2.0+</td>
+<td>D5, D6</td>
+<td>Unsupported</td>
+</tr>
+</tbody>
+</table>
 
 Drush comes with a full test suite powered by [PHPUnit](https://github.com/sebastianbergmann/phpunit). Each commit gets tested by the awesome [Travis.ci continuous integration service](https://travis-ci.org/drush-ops/drush).
 
