@@ -6,7 +6,7 @@ pages:
   - [configuration.md, 'Configuration']
   - [support.md, 'Getting support']
   - [faq.md, 'FAQ']
-  - [contributing.md, 'Contributing to Drush']
-# theme: readthedocs
+  - [contributing.md, 'Contributing']
+theme: readthedocs
 site_author: ""
 repo_url: https://github.com/drush-ops/drush
