@@ -248,7 +248,7 @@ function _drush_preflight_base_environment() {
   if (getenv('ETC_PREFIX')) drush_set_context('ETC_PREFIX', getenv('ETC_PREFIX'));
   if (getenv('SHARE_PREFIX')) drush_set_context('SHARE_PREFIX', getenv('SHARE_PREFIX'));
 
-  drush_set_context('DOC_PREFIX', DRUSH_BASE_PATH);
+  drush_set_context('DOC_PREFIX', DRUSH_BASE_PATH . '/docs');
   if (!file_exists(DRUSH_BASE_PATH . '/README.md') && file_exists(drush_get_context('SHARE_PREFIX', '/usr') . '/share/doc/drush' . '/README.md')) {
     drush_set_context('DOC_PREFIX', drush_get_context('SHARE_PREFIX', '/usr') . '/share/doc/drush');
   }

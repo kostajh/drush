@@ -65,12 +65,11 @@ Requirements
 
 * Drush commands that work with git require git 1.7 or greater.
 * Drush works best on a Unix-like OS (Linux, OS X)
-* Most Drush commands run on Windows.  See INSTALLING DRUSH ON WINDOWS, below.
+* Most Drush commands run on Windows.  See [Installing Drush on Windows](install.md#installing-on-windows) below.
 
-Install / Update
-------------------
+## Install via Composer (recommended)
 
-### Install via Composer (recommended)
+We recommend installing Drush via Composer.
 
 * [Install Composer globally](http://getcomposer.org/doc/00-intro.md#system-requirements) (if needed).
 * Make sure Composer's global bin directory is on the system PATH (recommended):
@@ -86,7 +85,7 @@ Install / Update
 
         composer global require drush/drush:dev-master
 
-* To update to a newer version (what you get depends on your specification in ~/.composer/composer.json):
+* To update to a newer version (what you get depends on your specification in `~/.composer/composer.json`):
 
         composer global update
         
@@ -112,24 +111,26 @@ Install / Update
 
 [Fuller explanation of the require command.](http://getcomposer.org/doc/03-cli.md#require)
 
-**Tips:**
-
-If Drush cannot find an autoloaded class, run `composer self-update`. Drush often
-tracks composer changes closely, so you may have some problems if you are not
-running a recent version.
+<div class="admonition note">
+<p class="first admonition-title">Tips</p>
+<p class="last">
+If Drush cannot find an autoloaded class, run <code>composer self-update</code>. Drush often tracks composer changes closely, so you may have some problems if you are not running a recent version.
 
 If composer cannot find a requirement, and suggests that *The package is not available in a stable-enough version according to your minimum-stability setting*, then place the following
-in `$HOME/.composer/composer.json`:
-```
+in <code>$HOME/.composer/composer.json</code>:
+<pre class="prettyprint well">
+<code>
 {
   "minimum-stability": "dev"
 }
-```
+</code>
+</pre>
+
 Merge this in with any other content that may already exist in this file.
+</p>
+</div>
 
-See the POST-INSTALL section for configuration tips.
-
-### Manual install
+## Manual install
 
 1. Place the uncompressed drush.tar.gz, drush.zip, or cloned git repository in a directory that is outside of your web root.
 1. Make the 'drush' command executable:
@@ -141,7 +142,7 @@ See the POST-INSTALL section for configuration tips.
 
          `$ ln -s /path/to/drush/drush /usr/bin/drush`
 
-    1. Explicitly add the Drush executable to the PATH variable which is defined in the the shell configuration file called .profile, .bash_profile, .bash_aliases, or .bashrc that is located in your home folder, i.e.:
+    1. Explicitly add the Drush executable to the `PATH` variable which is defined in the the shell configuration file called `.profile`, `.bash_profile`, `.bash_aliases`, or `.bashrc` that is located in your home folder, i.e.:
 
            `export PATH="$PATH:/path/to/drush:/usr/local/bin"`
 
@@ -164,8 +165,6 @@ See the POST-INSTALL section for configuration tips.
 1. From Drush root, run Composer to fetch dependencies.
 
      `$ composer install`
-
-See the POST-INSTALL section for configuration tips.
 
 Installing on Windows
 ---------------------

@@ -1,25 +1,25 @@
 Post-install
 -----------------------
 
-1. See [example.bashrc](examples/example.bashrc) for instructions on how to add some
+1. See [example.bashrc](../examples/example.bashrc) for instructions on how to add some
    useful shell aliases that provides even tighter integration between
    drush and bash. You may source this file directly into your shell by adding to
    your .bashrc (or equivalent): source /path/to/drush/examples/example.bashrc
 
 1. If you didn't source it the step above, see top of
-   [drush.complete.sh](drush.complete.sh) file for instructions adding bash completion for drush
+   [drush.complete.sh](../drush.complete.sh) file for instructions adding bash completion for drush
    command to your shell.  Once configured, completion works for site aliases,
    command names, shell aliases, global options, and command-specific options.
 
-1. Optional. If [drush.complete.sh](drush.complete.sh) is being sourced (ideally in
+1. Optional. If [drush.complete.sh](../drush.complete.sh) is being sourced (ideally in
    bash_completion.d), you can use the supplied __drush_ps1() sh function to
    add your current drush site (set with `drush use @sitename`) to your PS1
    prompt like so:
 
-      ``` bash
-      if [ "\$(type -t __git_ps1)" ] && [ "\$(type -t __drush_ps1)" ]; then
-        PS1='\u@\h \w$(__git_ps1 " (%s)")$(__drush_ps1 "[%s]")\$ '
-      fi
+      ```
+        if [ "\$(type -t __git_ps1)" ] && [ "\$(type -t __drush_ps1)" ]; then
+          PS1='\u@\h \w$(__git_ps1 " (%s)")$(__drush_ps1 "[%s]")\$ '
+        fi
       ```
 
    Putting this in a .bashrc/.bash_profile/.profile would produce this prompt:
@@ -90,7 +90,7 @@ Path                                       | Application
 /opt/lampp/bin                             | XAMPP (Windows)
 
 Additionally, you may need to adjust your php.ini settings before you can use
-drush successfully. See CONFIGURING PHP.INI below for more details on how to
+drush successfully. See [php.ini configuration](configuration.md#phpini-configuration) below for more details on how to
 proceed.
 
 Specify PHP version for Drush
@@ -98,7 +98,7 @@ Specify PHP version for Drush
 
   If you want to run Drush with a specific version of php, rather than the
   php defined by your shell, you can add an environment variable to your
-  the shell configuration file called .profile, .bash_profile, .bash_aliases,
+  the shell configuration file called `.profile`, `.bash_profile`, `.bash_aliases`,
   or .bashrc that is located in your home folder:
 
     export DRUSH_PHP='/path/to/php'
